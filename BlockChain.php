@@ -4,6 +4,7 @@ class BlockChain
 {
     const MINING_DIFFICULTY = 1;
     const MIN_LENGTH = 1;
+    const MINING_REWARD = 0.25;
     private array $transactionPool = [];
     private array $chain = [];
 
@@ -46,7 +47,7 @@ class BlockChain
      *
      * @return void
      */
-    public function createBlockAndAppendChain()
+    public function createBlock()
     {
         $transactions = $this->transactionPool;
         $timeStamp = time();
@@ -55,8 +56,11 @@ class BlockChain
         } else {
             $previousHash = $this->getHash([]);
         }
-        $nonce = $this->getNonce($this->transactionPool, $previousHash, time());
+        $nonce = $this->proofOfWork($this->transactionPool, $previousHash, time());
         $this->chain[] = compact('transactions', 'timeStamp', 'previousHash', 'nonce');
+        // マイニングに成功したユーザーに一定量の報酬を提供する
+        // Todo: recipientが今は固定だが、動的に取得できるようにする
+        $this->addTransaction('system', 'a', self::MINING_REWARD);
     }
 
     /**
@@ -72,24 +76,24 @@ class BlockChain
     }
 
     /**
-     * マイニングに成功するナンス値を取得
+     * プルーフオブワーク
      *
      * @param array $transactions
      * @param string $previousHash
      * @param $timestamp
      * @return int
      */
-    private function getNonce(array $transactions, string $previousHash, $timestamp)
+    private function proofOfWork(array $transactions, string $previousHash, $timestamp)
     {
         $nonce = 0;
-        while(!$this->isSuccessMining($transactions, $previousHash, $timestamp, $nonce)) {
+        while(!$this->isValidProof($transactions, $previousHash, $timestamp, $nonce)) {
             $nonce++;
         }
         return $nonce;
     }
 
     /**
-     * マイニングが成功するハッシュ値の取得に成功したかどうか
+     * プルーフが有効かどうか
      *
      * @param array $transactions
      * @param string $previousHash
@@ -97,7 +101,7 @@ class BlockChain
      * @param int $nonce
      * @return bool
      */
-    private function isSuccessMining(array $transactions, string $previousHash, $timeStamp, int $nonce)
+    private function isValidProof(array $transactions, string $previousHash, $timeStamp, int $nonce)
     {
         $length = (self::MINING_DIFFICULTY === 1) ? self::MIN_LENGTH : self::MINING_DIFFICULTY -1;
         return substr($this->getHash(compact('transactions', 'timeStamp', 'previousHash', 'nonce')), 0 ,$length)
@@ -107,4 +111,4 @@ class BlockChain
 
 $blockChain = new BlockChain();
 $blockChain->addTransaction('a', 'b', 1.0);
-$blockChain->createBlockAndAppendChain();
+$blockChain->createBlock();
