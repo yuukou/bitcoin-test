@@ -32,7 +32,18 @@ class Wallet
     {
         return $this->bitcoinECDSA->getAddress();
     }
+
+    /**
+     * トランザクションの署名
+     *
+     * @return string
+     * @throws Exception
+     */
+    public function generateSignature()
+    {
+        return $this->bitcoinECDSA->signMessage('aaa');
+    }
 }
 
 $wallet = new Wallet();
-var_dump($wallet->generateBlockChainAddress());
+var_dump($wallet->generateSignature());
