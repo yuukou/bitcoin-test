@@ -2,26 +2,56 @@
 
 class BlockChain
 {
-    const MINING_DIFFICULTY = 3;
+    const MINING_DIFFICULTY = 1;
+    const MIN_LENGTH = 1;
     private array $transactionPool = [];
     private array $chain = [];
 
-    public function __construct(array $transaction)
+    /**
+     * トランザクションプールに新規のトランザクションを追加する
+     *
+     * @param string $sender
+     * @param string $recipient
+     * @param float $value
+     * @return void
+     */
+    public function addTransaction(string $sender, string $recipient, float $value)
     {
-        $this->transactionPool[] = $transaction;
+        $this->transactionPool[] = compact('sender', 'recipient', 'value');
     }
 
-    public function getChain()
+    /**
+     * 合計値を取得する
+     *
+     * @param string $address
+     * @return int
+     */
+    public function calcTotalAmount(string $address)
     {
-        return $this->chain;
+        $total = 0;
+        foreach ($this->chain as $block) {
+            foreach ($block['transactions'] as $transaction) {
+                if ($address === $transaction['sender']) {
+                    $total -= $transaction['value'];
+                } elseif ($address === $transaction['recipient']) {
+                    $total += $transaction['value'];
+                }
+            }
+        }
+        return $total;
     }
 
-    public function createBlock()
+    /**
+     * ブロック生成とチェーンへの追加
+     *
+     * @return void
+     */
+    public function createBlockAndAppendChain()
     {
         $transactions = $this->transactionPool;
         $timeStamp = time();
-        if ($this->chain) {
-            $previousHash = $this->getHash(end($chain));
+        if (!empty($this->chain)) {
+            $previousHash = $this->getHash(end($this->chain));
         } else {
             $previousHash = $this->getHash([]);
         }
@@ -52,7 +82,7 @@ class BlockChain
     private function getNonce(array $transactions, string $previousHash, $timestamp)
     {
         $nonce = 0;
-        while(!($this->isSuccessMining($transactions, $previousHash, $timestamp, $nonce))) {
+        while(!$this->isSuccessMining($transactions, $previousHash, $timestamp, $nonce)) {
             $nonce++;
         }
         return $nonce;
@@ -63,13 +93,18 @@ class BlockChain
      *
      * @param array $transactions
      * @param string $previousHash
-     * @param $timestamp
+     * @param $timeStamp
      * @param int $nonce
      * @return bool
      */
-    private function isSuccessMining(array $transactions, string $previousHash, $timestamp, int $nonce)
+    private function isSuccessMining(array $transactions, string $previousHash, $timeStamp, int $nonce)
     {
-        return substr($this->getHash(compact('transactions', 'timeStamp', 'previousHash', 'nonce')), 0 ,(self::MINING_DIFFICULTY -1))
+        $length = (self::MINING_DIFFICULTY === 1) ? self::MIN_LENGTH : self::MINING_DIFFICULTY -1;
+        return substr($this->getHash(compact('transactions', 'timeStamp', 'previousHash', 'nonce')), 0 ,$length)
             === str_repeat("0", self::MINING_DIFFICULTY);
     }
 }
+
+$blockChain = new BlockChain();
+$blockChain->addTransaction('a', 'b', 1.0);
+$blockChain->createBlockAndAppendChain();
