@@ -8,10 +8,12 @@ use BitcoinPHP\BitcoinECDSA\BitcoinECDSA;
 
 class Wallet
 {
+    use Functions;
+
     private string $privateKey;
     private string $publicKey;
+    private string $address;
     private BitcoinECDSA $bitcoinECDSA;
-    private BlockChain $blockChain;
 
     /**
      * Wallet constructor.
@@ -24,7 +26,7 @@ class Wallet
         $this->bitcoinECDSA->generateRandomPrivateKey();
         $this->privateKey = $this->bitcoinECDSA->getPrivateKey();
         $this->publicKey = $this->bitcoinECDSA->getPubKey();
-        $this->blockChain = new BlockChain();
+        $this->address = $this->generateBlockChainAddress();
     }
 
     /**
@@ -32,9 +34,29 @@ class Wallet
      *
      * @return String
      */
-    public function generateBlockChainAddress()
+    private function generateBlockChainAddress()
     {
         return $this->bitcoinECDSA->getAddress();
+    }
+
+    /**
+     * アドレスの取得
+     *
+     * @return string
+     */
+    public function getAddress()
+    {
+        return $this->address;
+    }
+
+    /**
+     * 公開鍵の取得
+     *
+     * @return array|string
+     */
+    public function getPublicKey()
+    {
+        return $this->publicKey;
     }
 
     /**
@@ -46,24 +68,6 @@ class Wallet
     public function generateSignature(array $transaction)
     {
         // transactionをハッシュ化したものを作成して、signHashに渡す
-        return $this->bitcoinECDSA->signHash($this->blockChain->getHash($transaction));
-    }
-
-    /**
-     * 署名が正しいかどうか
-     *
-     * @param string $signature
-     * @param array $transaction
-     * @return bool
-     */
-    public function verifySignature(string $signature, array $transaction)
-    {
-        return $this->bitcoinECDSA->checkDerSignature($this->publicKey, $signature, $this->blockChain->getHash($transaction));
+        return $this->bitcoinECDSA->signHash($this->getHash($transaction));
     }
 }
-
-$wallet = new Wallet();
-$blockChain = new BlockChain();
-$signature = $wallet->generateSignature($blockChain->generateTransaction('a', 'b', 1.0));
-var_dump($signature);
-var_dump($wallet->verifySignature($signature, $blockChain->generateTransaction('a', 'b', 2.0)));
