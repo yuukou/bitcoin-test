@@ -60,14 +60,12 @@ class Wallet
     }
 
     /**
-     * トランザクションの署名
+     * BitcoinECDSAインスタンスを取得
      *
-     * @param array $transaction
-     * @return string
+     * @return BitcoinECDSA
      */
-    public function generateSignature(array $transaction)
+    public function getBitcoinECDSA()
     {
-        // transactionをハッシュ化したものを作成して、signHashに渡す
-        return $this->bitcoinECDSA->signHash($this->getHash($transaction));
+        return $this->bitcoinECDSA;
     }
 }

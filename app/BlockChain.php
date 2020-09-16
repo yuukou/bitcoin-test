@@ -183,9 +183,12 @@ $wallet_B = new Wallet();
 // マイナーのウォレット
 $wallet_M = new Wallet();
 
+// A -> B に 1.0 送信するトランザクションを作成
+$transaction = new Transaction($wallet_A->getBitcoinECDSA());
+// ブロックチェーンインスタンスの生成
 $blockChain = new BlockChain($wallet_M->getAddress());
 // A -> B に 1.0 送信するトランザクションの署名を取得
-$signature = $wallet_A->generateSignature($blockChain->getExchangeData($wallet_A->getAddress(), $wallet_B->getAddress(), 1.0));
+$signature = $transaction->generateSignature($blockChain->getExchangeData($wallet_A->getAddress(), $wallet_B->getAddress(), 1.0));
 // A -> B に 1.0 送信するトランザクションをブロックチェーン上のトランザクションプールに追加する
 $blockChain->addTransaction($wallet_A->getAddress(), $wallet_B->getAddress(), 1.0, $wallet_A->getPublicKey(), $signature);
 var_dump($blockChain->getTransactionPool());
