@@ -1,5 +1,7 @@
 <?php
 
+namespace App;
+
 class BlockChain
 {
     const MINING_DIFFICULTY = 1;
@@ -18,7 +20,20 @@ class BlockChain
      */
     public function addTransaction(string $sender, string $recipient, float $value)
     {
-        $this->transactionPool[] = compact('sender', 'recipient', 'value');
+        $this->transactionPool[] = $this->generateTransaction($sender, $recipient, $value);
+    }
+
+    /**
+     * トランザクションを生成
+     *
+     * @param string $sender
+     * @param string $recipient
+     * @param float $value
+     * @return array
+     */
+    public function generateTransaction(string $sender, string $recipient, float $value)
+    {
+        return compact('sender', 'recipient', 'value');
     }
 
     /**
@@ -69,7 +84,7 @@ class BlockChain
      * @param array $block
      * @return string
      */
-    private function getHash(array $block)
+    public function getHash(array $block)
     {
         // phpのhash関数は文字列にかけるものなので、一旦serializeで配列を文字列に変換してからhash関数をかける
         return hash('sha256', serialize($block));
@@ -106,6 +121,10 @@ class BlockChain
         $length = (self::MINING_DIFFICULTY === 1) ? self::MIN_LENGTH : self::MINING_DIFFICULTY -1;
         return substr($this->getHash(compact('transactions', 'timeStamp', 'previousHash', 'nonce')), 0 ,$length)
             === str_repeat("0", self::MINING_DIFFICULTY);
+    }
+
+    public function verifyTransactionSignature()
+    {
     }
 }
 
