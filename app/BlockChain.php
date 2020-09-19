@@ -17,11 +17,13 @@ class BlockChain
     private array $transactionPool = [];
     private array $chain = [];
     private string $minerAddress;
+    private int $port;
 
     //Todo: minerAddressは配列でいくつも登録できるようにするべき
-    public function __construct(string $minerAddress)
+    public function __construct(string $minerAddress, int $port = 8027)
     {
         $this->minerAddress = $minerAddress;
+        $this->port = $port;
     }
 
     /**
